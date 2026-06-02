@@ -7,7 +7,6 @@ vim.g.maplocalleader = " "
 vim.opt.number = true
 vim.opt.relativenumber = true
 vim.opt.mouse = "a"
-vim.opt.clipboard = "unnamedplus"
 
 vim.opt.expandtab = true
 vim.opt.shiftwidth = 4
@@ -39,16 +38,17 @@ vim.o.guicursor = "i:block"
 
 vim.opt.termguicolors = true
 vim.opt.signcolumn = "no"
-vim.opt.laststatus = 3      -- single statusline for all windows
+vim.opt.laststatus = 0      -- single statusline for all windows
 
 --------------------------------------------------
 -- Keymaps
 --------------------------------------------------
-
 local set = vim.keymap.set
+local opts = { noremap = true, silent = true, }
 
-vim.keymap.set("n", "<C-s>", "<cmd>w<CR>", { desc = "Save file" })
-vim.keymap.set("i", "<C-s>", "<Esc><cmd>w<CR>", { desc = "Save file" })
+
+set("n", "<C-s>", "<cmd>w<CR>", { desc = "Save file" })
+set("i", "<C-s>", "<Esc><cmd>w<CR>", { desc = "Save file" })
 
 -- navigate buffers
 set('n', '<C-h>', '<C-w>h', opts)
@@ -69,6 +69,14 @@ set('v', '>', '>gv', opts)
 -- move lines like alt in vscode
 set("v", "J", ":m '>+1<CR>gv=gv")
 set("v", "K", ":m '<-2<CR>gv=gv")
+
+-- clipboard management
+set("n", "<Leader>y", '"+y', opts)
+set("n", "<Leader>p", '"+p', opts)
+set("v", "<Leader>y", '"+y', opts)
+
+-- find and replace thing
+set("n", "<Leader>s", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]])
 
 -- window managment
 set("n", "<Leader>ws", "<C-w>s", opts)
@@ -239,7 +247,6 @@ require("lazy").setup({
                 ensure_installed = {
                     "lua_ls",
                     "clangd",
-                    "pyright",
                 },
             })
         end,
@@ -260,18 +267,16 @@ require("lazy").setup({
             })
 
             vim.lsp.config("clangd", {})
-            vim.lsp.config("pyright", {})
 
             vim.lsp.enable("lua_ls")
             vim.lsp.enable("clangd")
-            vim.lsp.enable("pyright")
 
             vim.keymap.set("n", "gd", vim.lsp.buf.definition)
             vim.keymap.set("n", "gr", vim.lsp.buf.references)
             vim.keymap.set("n", "K", vim.lsp.buf.hover)
-            vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename)
-            vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action)
-            vim.keymap.set("n", "<leader>d", vim.diagnostic.open_float)
+            vim.keymap.set("n", "<leader>lr", vim.lsp.buf.rename)
+            vim.keymap.set("n", "<leader>lc", vim.lsp.buf.code_action)
+            vim.keymap.set("n", "<leader>ld", vim.diagnostic.open_float)
         end,
     },
 
