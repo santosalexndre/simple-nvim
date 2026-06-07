@@ -38,7 +38,8 @@ vim.o.guicursor = "i:block"
 
 vim.opt.termguicolors = true
 vim.opt.signcolumn = "no"
-vim.opt.laststatus = 0      -- single statusline for all windows
+vim.opt.laststatus = 0 -- single statusline for all windows
+-- vim.opt.cmdheight = 0
 
 --------------------------------------------------
 -- Keymaps
@@ -170,7 +171,7 @@ vim.opt.rtp:prepend(lazypath)
 --------------------------------------------------
 
 require("lazy").setup({
-    
+
     {
         "windwp/nvim-autopairs",
         event = "InsertEnter",
@@ -210,7 +211,7 @@ require("lazy").setup({
             require("mason").setup()
         end,
     },
-    
+
     {
         "ellisonleao/gruvbox.nvim",
         priority = 1000,
@@ -219,7 +220,7 @@ require("lazy").setup({
 
             require("gruvbox").setup({
                 bold = false,
-		transparent_mode = true,
+                transparent_mode = true,
                 italic = {
                     strings = false,
                     emphasis = false,
@@ -231,7 +232,6 @@ require("lazy").setup({
             })
 
             vim.cmd.colorscheme("gruvbox")
-
         end,
     },
 
@@ -255,7 +255,6 @@ require("lazy").setup({
     {
         "neovim/nvim-lspconfig",
         config = function()
-
             vim.lsp.config("lua_ls", {
                 settings = {
                     Lua = {
@@ -277,6 +276,32 @@ require("lazy").setup({
             vim.keymap.set("n", "<leader>lr", vim.lsp.buf.rename)
             vim.keymap.set("n", "<leader>lc", vim.lsp.buf.code_action)
             vim.keymap.set("n", "<leader>ld", vim.diagnostic.open_float)
+
+            vim.keymap.set("n", "<leader>lf", function()
+                vim.lsp.buf.format({ async = true })
+            end, { desc = "Format buffer" })
+
+            _G.autoformat_enabled = false
+
+            vim.api.nvim_create_user_command("ToggleAutoFormat", function()
+                _G.autoformat_enabled = not _G.autoformat_enabled
+
+                -- vim.notify("Auto format " .. (_G.autoformat_enabled and "enabled" or "disabled"))
+            end, {})
+
+            vim.keymap.set("n", "<leader>tf", "<cmd>ToggleAutoFormat<CR>")
+            vim.api.nvim_create_autocmd("BufWritePre", {
+                callback = function(args)
+                    if not _G.autoformat_enabled then
+                        return
+                    end
+
+                    vim.lsp.buf.format({
+                        bufnr = args.buf,
+                        async = false,
+                    })
+                end,
+            })
         end,
     },
 
@@ -305,13 +330,13 @@ require("lazy").setup({
                     }),
                 }),
             })
-            
-            local autocmp_enabled = false
+
+            _G.autocmp_enabled = false
 
             local function update_cmp()
                 cmp.setup({
                     completion = {
-                        autocomplete = autocmp_enabled and { cmp.TriggerEvent.TextChanged }
+                        autocomplete = _G.autocmp_enabled and { cmp.TriggerEvent.TextChanged }
                             or false,
                     },
                 })
@@ -320,17 +345,61 @@ require("lazy").setup({
             update_cmp()
 
             vim.api.nvim_create_user_command("ToggleAutoCmp", function()
-                autocmp_enabled = not autocmp_enabled
+                _G.autocmp_enabled = not _G.autocmp_enabled
                 update_cmp()
 
-                vim.notify(
-                    "Auto completion " ..
-                    (autocmp_enabled and "enabled" or "disabled")
-                )
+                -- vim.notify(
+                --     "Auto completion " ..
+                --     (_G.autocmp_enabled and "enabled" or "disabled")
+                -- )
             end, {})
 
             vim.keymap.set("n", "<leader>tc", "<cmd>ToggleAutoCmp<CR>")
         end,
     },
-})
 
+    -- {
+    --     "nvim-lualine/lualine.nvim",
+    --     dependencies = {
+    --         "nvim-tree/nvim-web-devicons",
+    --     },
+    --     config = function()
+    --         require("lualine").setup({
+    --             options = {
+    --                 theme = "gruvbox",
+    --                 globalstatus = true,
+    --                 icons_enabled = true,
+    --                 component_separators = "",
+    --                 section_separators = "",
+    --             },
+    --
+    --             sections = {
+    --                 lualine_a = { "mode" },
+    --                 lualine_b = { "branch"},
+    --
+    --                 lualine_c = {
+    --
+    --                     "filename",
+    --                 },
+    --
+    --                 lualine_x = { 
+    --                     {
+    --                         function()
+    --                             return _G.autocmp_enabled and "CMP:ON" or "CMP:OFF"
+    --                         end,
+    --                     },
+    --
+    --                     {
+    --                         function()
+    --                             return _G.autoformat_enabled and "FMT:ON" or "FMT:OFF"
+    --                         end,
+    --                     },
+    --                 },
+    --                 lualine_y = { "filetype" },
+    --                 lualine_z = {},
+    --             },
+    --         })
+    --
+    --     end,
+    -- }
+})
